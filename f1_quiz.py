@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # --- Functions ---
-def generate_f1_quiz(api_key, topic, difficulty_level):
+def generate_f1_quiz(api_key, topic, difficulty_level, year):
     # Configure Gemini API
     genai.configure(api_key=api_key)
     
@@ -33,6 +33,8 @@ def generate_f1_quiz(api_key, topic, difficulty_level):
     else:
         topic_instruction = topic
 
+    year_instruction = f"Focus on events and facts from the {year} F1 season." if year != "All Time (전체 연도)" else "Include questions from all F1 seasons."
+
     prompt = f"""
     You are an F1 (Formula 1) Expert and Commentator. You are creating a quiz for a 12-year-old fan who loves F1 history, drivers, and technology.
     
@@ -40,6 +42,7 @@ def generate_f1_quiz(api_key, topic, difficulty_level):
     
     **Parameters**:
     - **Topic**: {topic_instruction}
+    - **Year**: {year_instruction}
     - **Difficulty**: {difficulty_guide}
     - **Format**: 5 Multiple Choice Questions.
     
@@ -95,6 +98,8 @@ TOPICS = [
     "드라마틱한 순간들 (Dramatic Moments & Rivalries)"
 ]
 
+YEARS = ["All Time (전체 연도)"] + [str(year) for year in range(2025, 1949, -1)]
+
 # --- Session State ---
 if 'quiz_data' not in st.session_state:
     st.session_state.quiz_data = None
@@ -125,10 +130,11 @@ with st.container():
 
     col1, col2 = st.columns(2)
     with col1:
+        selected_year = st.selectbox("연도 선택 (Year)", YEARS, disabled=st.session_state.is_generating)
         topic = st.selectbox("주제 선택 (Topic)", TOPICS, disabled=st.session_state.is_generating)
     with col2:
         difficulty = st.select_slider(
-            "난이도 (Difficulty)", 
+            "난이도 (Difficulty)",
             options=["Rookie (입문)", "Driver (중급)", "World Champion (상급)"], 
             value="Driver (중급)",
             disabled=st.session_state.is_generating
@@ -142,7 +148,7 @@ with st.container():
 # --- Generation Logic ---
 if st.session_state.is_generating:
     with st.spinner("엔진 예열 중... F1 데이터를 분석하고 있습니다! 🏎️💨"):
-        result = generate_f1_quiz(api_key, topic, difficulty)
+        result = generate_f1_quiz(api_key, topic, difficulty, selected_year)
         if "error" in result:
             st.error(f"Engine Failure! 오류가 발생했습니다: {result['error']}")
         else:
