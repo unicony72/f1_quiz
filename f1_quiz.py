@@ -80,8 +80,8 @@ def generate_f1_quiz(api_key, topic, difficulty_level, year):
         elif "```" in text_response:
             text_response = text_response.split("```")[1].split("```")[0]
             
-        text_response = re.sub(r',\s*]', ']', text_response)
-        text_response = re.sub(r',\s*}', '}', text_response)
+        text_response = re.sub(r',\s*\]', ']', text_response)
+        text_response = re.sub(r',\s*\}', '}', text_response)
         
         return json.loads(text_response)
     except Exception as e:
